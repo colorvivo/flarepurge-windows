@@ -81,6 +81,23 @@ CI builds and tests on every push and produces a sideloadable MSIX artifact — 
 
 Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). FlarePurge stays deliberately narrow: **it only purges cache.** DNS, WAF, analytics and other Cloudflare features are out of scope by design.
 
+## More from Color Vivo
+
+FlarePurge is built by [Color Vivo Internet, SL](https://www.colorvivo.com). We make a small family of privacy-first tools — several of them open source. Try them, use them, and contribute to the open ones:
+
+| Project | What it is |
+|---------|------------|
+| **[iSkitch](https://iskitch.com)** | Capture, annotate and share screenshots on macOS in one click. *(Mac App Store)* |
+| **[ImageForge](https://imageforge.info)** | Lossless image compression on macOS, 100% on-device — nothing uploaded. *(free + Pro)* |
+| **[MboxShell](https://github.com/dcarrero/mboxshell)** | Fast Rust terminal viewer for huge MBOX files (Gmail Takeout, 50 GB+) without loading them into memory. *(open source)* |
+| **[Mbox Viewer](https://mboxviewer.net)** | Open, read and search MBOX & EML files of any size on Mac & Windows, fully offline. *(free up to 500 MB)* |
+| **[Online Mbox Viewer](https://onlinemboxviewer.com)** | Read MBOX & EML archives right in your browser — nothing is uploaded. *(open source, free)* |
+| **[DocProtect](https://docprotect.net)** | Watermark and redact sensitive documents before sharing; all processing on-device. *(free for personal use)* |
+| **[files.co](https://files.co)** | 20 PDF tools that run entirely in your browser — edit PDFs, upload nothing. *(free)* |
+| **[reader.me](https://reader.me)** | Free in-browser PDF toolkit — merge, split, convert, OCR and sign, all on your device. *(free)* |
+| **[LocalKeep](https://localkeep.net)** | On-device AI to summarize, extract and rewrite text with zero network requests. *(free)* |
+| **[DNSgratis](https://dnsgratis.com)** | A free guide to the best public DNS servers, with setup guides and comparisons. *(free)* |
+
 ## License
 
 Released under the [MIT License](LICENSE). Copyright © 2026 Color Vivo Internet, SL.
