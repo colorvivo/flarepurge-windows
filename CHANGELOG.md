@@ -1,65 +1,111 @@
 # Changelog
 
-Historial de cambios de FlarePurge para Windows. Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones siguen [SemVer](https://semver.org/lang/es/).
+Change history for **FlarePurge for Windows**. Format based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
+[SemVer](https://semver.org/).
+
+> **About this changelog.** FlarePurge is developed in a private core repository
+> and released here as the public, MIT-licensed edition. This file mirrors the
+> full release history of the core so the public builds are fully traceable.
+> Some entries reference cross-platform parity work (macOS / Android) that lives
+> in separate repositories.
 
 ## [1.0.2] — 2026-04-26
 
-> Esta release contiene el trabajo que se preparó como 1.0.1 en local pero nunca se subió al Store. Se publica como 1.0.2 directamente para evitar colisiones de versión con el catálogo de Partner Center.
+> This release contains the work that was prepared as 1.0.1 locally but never
+> shipped to the Store. It is published directly as 1.0.2 to avoid version
+> collisions with the Partner Center catalog.
 
+### Added
+- **Per-account zone list cache.** The list appears instantly when opening the
+  app or switching accounts, then refreshes silently in the background. Persisted
+  at `%LOCALAPPDATA%\FlarePurge\zones.v1.json` (public metadata only — never any token).
+- **Manual zone reload:** "Reload" button in the status bar + **Ctrl+R** shortcut.
+  Forces a fresh fetch to `api.cloudflare.com`.
+- **"Zones updated X ago" indicator** in the status bar, refreshed every 30 s.
+- **Optional label when adding an API key.** Useful to tell accounts apart when
+  you store several (e.g. "Client X" vs. "Personal"). Blank falls back to the
+  name returned by Cloudflare.
+- **Rename the label** of a saved account from Settings → API Accounts (pencil
+  icon on each row).
 
-### Añadido
-- **Cache de listado de zonas** por cuenta. La lista aparece al instante al abrir la app o cambiar de cuenta; se refresca en segundo plano silencioso. Persiste en `%LOCALAPPDATA%\FlarePurge\zones.v1.json` (sólo metadatos públicos — ningún token).
-- **Recarga manual** de zonas: botón "Recargar" en la barra de estado + atajo **Ctrl+R**. Fuerza un fetch nuevo a `api.cloudflare.com`.
-- **Indicador "Zonas actualizadas hace X"** en la barra de estado. Se refresca cada 30 s.
-- **Etiqueta opcional al añadir una API key**. Útil para distinguir cuentas si guardas varias (por ejemplo "Cliente X" vs. "Personal"). Si se deja en blanco se usa el nombre devuelto por Cloudflare.
-- **Renombrar etiqueta** de una cuenta guardada desde Ajustes → Cuentas API. Icono lápiz en cada fila.
+### Translations
+- **i18n infrastructure fully wired.** The UI now consumes the 21 bundled
+  translations instead of hardcoded strings. Previously the infrastructure
+  existed (21 languages × ~220 keys) but no view used it — which is why the
+  wizard showed in English and the language selector had no effect.
+- **Token wizard, About, Settings, Zones, Zone detail, modal dialogs (purge,
+  confirmation, selective, history), tray menu and result windows** now go
+  through `ResourceLoader`. Changing the language in Settings now takes effect
+  on app restart.
+- **English leaks fixed** ("← Back", "Paste token", "Verify and save token",
+  "Token saved.", the "BUILT WITH / BACKEND / TRACKING / TOKEN STORAGE /
+  LANGUAGES / PRICE" overlines in About, the "Open FlarePurge / Quit" tray menu,
+  etc.).
+- **116 new keys** added to the catalog, with complete translations for
+  EN/ES/ES-MX/CA/FR/IT/DE/PT-PT (+ NL/NB/SV for time and configuration strings).
+  The remaining 13 locales (AR/EL/HE/HU/JA/KO/PL/RO/TH/ZH-Hans/…) fall back to
+  English and are marked `<!-- TODO: translate -->` until a native translation lands.
 
-### Traducciones
-- **Infra i18n totalmente cableada**: la UI ahora consume las 21 traducciones del paquete en vez de mostrar cadenas hardcoded. Antes la infraestructura existía (21 idiomas × ~220 keys) pero ninguna vista la usaba — por eso el wizard aparecía en inglés y el selector de idioma no tenía efecto.
-- **Wizard de token, About, Ajustes, Zonas, Detalle de zona, diálogos modales (purga, confirmación, selectiva, historial), menú de la bandeja y ventanas de resultado** pasan por el `ResourceLoader`. Cambiar el idioma en Ajustes ahora surte efecto al reiniciar la app.
-- **Fugas en inglés corregidas** (botón "← Back", "Paste token", "Verify and save token", "Token saved.", overlines "BUILT WITH / BACKEND / TRACKING / TOKEN STORAGE / LANGUAGES / PRICE" de la ventana Acerca de, menú "Open FlarePurge / Quit" del tray, etc.).
-- **116 keys nuevas** añadidas al catálogo (`action_back`, `zones_updatedRelative`, `time_*Ago`, `editLabel_title`, `settings_section_security/window`, `purgeConfirm_*`, `selective_*`, `history_*`, `bulk_*`, `tray_*`, etc.), con traducciones completas para EN/ES/ES-MX/CA/FR/IT/DE/PT-PT (+ NL/NB/SV en tiempo y configuración). 13 locales restantes (AR/EL/HE/HU/JA/KO/PL/RO/TH/ZH-Hans/...) caen al inglés con marca `<!-- TODO: translate -->` hasta que haya traducción nativa.
+### Cross-platform parity
+- **Anti re-render in `ApplyZones`:** the silent refresh no longer rebuilds the
+  ListView items when the incoming payload matches the current one (compared by
+  Id / Name / Status / Plan / AccountName / NameServers / CreatedOn). Preserves
+  selection and scroll between refreshes.
+- **Silent-error policy aligned across platforms:** the background silent refresh
+  no longer surfaces 401/403 errors as a reauth banner. Only a manual Ctrl+R
+  reports failures to the user, so focus is never stolen while you work.
+- **Centralized `IAccountStore.RenameAccount(id, newLabel)`:** the Settings view
+  no longer mutates the list ad-hoc; it delegates to the store (trim + no-op on
+  no change + unknown-id guard).
 
-### Paridad con Mac
-- **Anti re-render en `ApplyZones`**: el silent refresh ya no recrea los items del ListView si el payload entrante coincide con el actual (compara por Id / Name / Status / Plan / AccountName / NameServers / CreatedOn). Preserva selección y scroll entre refrescos. Copia directa del comportamiento de `ZoneListViewModel.load()` en SwiftUI.
-- **Política de error silencioso alineada con Apple**: el silent refresh en background ya no surface-a errores 401/403 como banner de reauth. Sólo el Ctrl+R manual reporta fallos al usuario. Evita quitar el foco mientras trabajas.
-- **`IAccountStore.RenameAccount(id, newLabel)` centralizado**: la vista de Ajustes ya no muta la lista ad-hoc, delega en el store (trim + no-op en sin cambios + guard de id desconocido). Paridad con `AppState.renameAccount` en SwiftUI.
+### Fixed
+- Crash when editing an account label in Settings (*"Only a single ContentDialog
+  can be open at any time"*). Renaming now uses a Flyout anchored to the button
+  instead of a nested dialog.
 
-### Corregido
-- Crash al editar la etiqueta de una cuenta en Ajustes (*"Only a single ContentDialog can be open at any time"*). El renombrado ahora usa un Flyout anclado al botón en lugar de un diálogo anidado.
-
-### Interno
-- Se borra el cache de zonas de una cuenta al cerrar sesión o eliminarla.
-- Helper `L.S(key)` / `L.Format(key, args…)` para consumo desde XAML (`{x:Bind loc:L.S('key'), Mode=OneTime}`) y code-behind.
-- 14 tests nuevos totales (8 para `JsonZoneCacheStore`, 6 para `IAccountStore.RenameAccount`). **Suite: 205/205** en verde, 0 warnings.
+### Internal
+- An account's zone cache is cleared on sign-out or removal.
+- `L.S(key)` / `L.Format(key, args…)` helper for consumption from XAML
+  (`{x:Bind loc:L.S('key'), Mode=OneTime}`) and code-behind.
+- 14 new tests total (8 for `JsonZoneCacheStore`, 6 for
+  `IAccountStore.RenameAccount`). **Suite: 205/205** green, 0 warnings.
 
 ---
 
 ## [1.0.0] — 2026-04-24
 
-Primera release para Microsoft Store. Paridad funcional 1:1 con FlarePurge Mac v1.7.x.
+First Microsoft Store release. 1:1 functional parity with FlarePurge for Mac v1.7.x.
 
-### Añadido
-- **Listar zonas** de Cloudflare con meta (plan, cuenta, nameservers, fecha).
-- **Purgar todo** el caché de una zona en un clic.
-- **Purga selectiva** por URLs (hasta 30 por lote, troceo automático) o por hosts.
-- **Multi-cuenta**: añadir varias API keys, cambiar entre ellas, agrupación automática cuando hay zonas de varias cuentas Cloudflare bajo el mismo token.
-- **Favoritos** por zona con purga masiva ("Purgar N zonas favoritas") y "Purgar todas las zonas de la cuenta X".
-- **Historial de sesión** con timestamp, resultado y purge ID.
-- **System tray dinámico**: menú con cuentas + favoritos + "Purgar todas".
-- **Minimizar a la bandeja** al cerrar (opcional).
-- **Ajustes**: tema (Auto/Claro/Oscuro, aplica en vivo), idioma (21 locales), confirmación antes de purgar.
-- **Kill switch remoto** (`flarepurge.com/status.json`) para desactivar la app en caso de incidencia.
-- **Atajos de teclado**: Ctrl+R (recargar), Ctrl+F (buscar), Ctrl+, (ajustes), Ctrl+1..9 (saltar a favorita N), Ctrl+Shift+P (purga rápida), Esc (atrás).
-- **Accesibilidad baseline**: AutomationProperties, contrastes, targets táctiles ≥32 px.
+### Added
+- **List Cloudflare zones** with metadata (plan, account, nameservers, date).
+- **Purge everything** — clear a zone's entire cache in one click.
+- **Selective purge** by URL (up to 30 per batch, automatic chunking) or by host.
+- **Multi-account:** add several API keys, switch between them, automatic grouping
+  when a token spans multiple Cloudflare accounts.
+- **Favorites** per zone with bulk purge ("Purge N favorite zones") and "Purge all
+  zones in account X".
+- **Session history** with timestamp, result and purge ID.
+- **Dynamic system tray:** menu with accounts + favorites + "Purge all".
+- **Minimize to tray** on close (optional).
+- **Settings:** theme (Auto/Light/Dark, applied live), language (21 locales),
+  confirm-before-purge.
+- **Remote kill switch** (`flarepurge.com/status.json`) to disable the app in case
+  of an incident.
+- **Keyboard shortcuts:** Ctrl+R (reload), Ctrl+F (search), Ctrl+, (settings),
+  Ctrl+1..9 (jump to favorite N), Ctrl+Shift+P (quick purge), Esc (back).
+- **Accessibility baseline:** AutomationProperties, contrast, touch targets ≥32 px.
 
-### Seguridad
-- Tokens guardados en **Windows Credential Vault** (DPAPI).
-- **Cert pinning SPKI SHA-256** contra `api.cloudflare.com` (3 hashes GTS WE1 + WR1 + Root R4).
-- **Sin analytics, sin tracking, sin SDKs de terceros**. Las únicas peticiones salientes van a `api.cloudflare.com` y a `flarepurge.com/status.json`.
-- Scopes de token mínimos: `Zone:Read` + `Zone Cache Purge` (+ `User:Read` para validación inicial).
+### Security
+- Tokens stored in the **Windows Credential Vault** (DPAPI).
+- **Certificate pinning** (SPKI SHA-256) against `api.cloudflare.com`
+  (3 hashes: GTS WE1 + WR1 + Root R4).
+- **No analytics, no tracking, no third-party SDKs.** The only outbound requests
+  go to `api.cloudflare.com` and `flarepurge.com/status.json`.
+- Minimal token scopes: `Zone:Read` + `Zone Cache Purge` (+ `User:Read` for
+  initial validation).
 
 ### Stack
 - WinUI 3 · Windows App SDK 1.6 · C# 13 · .NET 10.
 - Target Windows 10 21H2+ / Windows 11.
-- 191/191 tests, 0 warnings con `TreatWarningsAsErrors=true`.
+- 191/191 tests, 0 warnings with `TreatWarningsAsErrors=true`.

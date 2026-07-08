@@ -2,6 +2,24 @@
 
 Thanks for your interest in improving FlarePurge! This document covers how to build, what we accept, and how to submit changes.
 
+## How this repository works
+
+FlarePurge is developed in a **private core repository** and published here as the
+public, MIT-licensed edition. That keeps the app consistent across every platform
+(Windows today; macOS / iOS / Android next) and lets us ship coordinated releases.
+
+What this means for you as a contributor:
+
+- **Issues are very welcome here** — bug reports, feature ideas (within scope) and
+  translation fixes. This is the right place to report anything.
+- **Pull requests are welcome too.** When we accept one, the change is applied to the
+  core and then published back here. In some cases we may re-implement your change in
+  the core to keep the platforms aligned — you will always be credited, and the PR
+  thread will explain what happened.
+- The public repository is a faithful mirror of the core: **it may be updated with a
+  squashed "sync" commit** rather than merging your branch directly. This is normal
+  and does not mean your contribution was ignored.
+
 ## Scope — one job, done well
 
 FlarePurge exists to **purge Cloudflare cache** and nothing else. Please keep this in mind before opening a feature request or PR:

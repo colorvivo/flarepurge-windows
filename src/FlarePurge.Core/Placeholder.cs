@@ -1,8 +1,7 @@
 namespace FlarePurge.Core;
 
 /// <summary>
-/// Placeholder para validar que el proyecto compila.
-/// Se elimina en Sprint 1 cuando se implemente <c>ApiClient</c> (ver <c>../../CORE-SPEC.md</c> §3.6).
+/// Placeholder that exposes the public API contract version.
 /// </summary>
 public static class Placeholder
 {

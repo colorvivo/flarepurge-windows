@@ -4,9 +4,18 @@
 
 No analytics, no tracking, no third-party SDKs. The only outbound requests go to `api.cloudflare.com` and to `flarepurge.com/status.json` (a remote kill switch). Your API tokens live in the Windows Credential Locker, never in a config file.
 
-> **Available on the Microsoft Store:** https://apps.microsoft.com/detail/9P085X47J8N0
+> **Download pre-built versions from [flarepurge.com](https://flarepurge.com)** — the
+> website links to the current Microsoft Store listing and to signed sideload
+> builds. You don't need to compile anything to use FlarePurge.
 >
 > **Apple (macOS & iOS) and Android are coming soon** — this Windows edition is the first to go open source under the MIT license. The other platforms will follow in their own repositories.
+
+## Screenshots
+
+|  |  |
+|---|---|
+| ![Zone list](docs/screenshots/01-zone-list.png) | ![Selective purge](docs/screenshots/02-selective-purge.png) |
+| ![Purge confirmation](docs/screenshots/03-purge-confirm.png) | ![Settings](docs/screenshots/04-settings.png) |
 
 ## Features
 
