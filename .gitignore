@@ -1,0 +1,58 @@
+# Visual Studio / MSBuild / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.rsuser
+*.userosscache
+*.sln.docstates
+*.vsp
+*.pidb
+*.svclog
+*.scc
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+[Bb]in/
+[Oo]bj/
+
+# MSIX / Store
+*.appxrecipe
+AppPackages*/
+BundleArtifacts/
+Package.StoreAssociation.xml
+*.appx
+*.msix
+*.msixbundle
+*.cer
+*.pfx
+*.snk
+
+# NuGet
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+.nuget/
+
+# Claude Code per-workspace state
+.claude/
+
+# JetBrains / Rider
+.idea/
+*.DotSettings.user
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs
+*.log

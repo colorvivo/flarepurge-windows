@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="FlarePurge.App.Views.TokenWizardView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:FlarePurge.App.Views"
+    xmlns:loc="using:FlarePurge.App.Localization">
+
+    <Grid Padding="32" MaxWidth="520" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="16">
+
+            <Button x:Name="BackButton"
+                    Content="{x:Bind loc:L.S('action_back'), Mode=OneTime}"
+                    Click="OnBackClick"
+                    Visibility="Collapsed"
+                    HorizontalAlignment="Left"/>
+
+            <TextBlock Text="{x:Bind loc:L.S('tokenWizard_headline'), Mode=OneTime}"
+                       Style="{StaticResource FPHeroBrandStyle}"
+                       Foreground="{ThemeResource FPTextPrimaryBrush}"/>
+
+            <TextBlock Text="{x:Bind loc:L.S('tokenWizard_required_body'), Mode=OneTime}"
+                       Style="{StaticResource FPBodyStyle}"
+                       Foreground="{ThemeResource FPTextSecondaryBrush}"
+                       TextWrapping="Wrap"/>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="{x:Bind loc:L.S('tokenWizard_labelHeader'), Mode=OneTime}"
+                           Style="{StaticResource FPCaptionStyle}"
+                           Foreground="{ThemeResource FPTextSecondaryBrush}"/>
+                <TextBox PlaceholderText="{x:Bind loc:L.S('tokenWizard_labelPlaceholder'), Mode=OneTime}"
+                         Text="{x:Bind ViewModel.Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{x:Bind ViewModel.IsIdle, Mode=OneWay}"
+                         MaxLength="60"
+                         MinHeight="36"/>
+                <TextBlock Text="{x:Bind loc:L.S('tokenWizard_labelFootnote'), Mode=OneTime}"
+                           Style="{StaticResource FPCaptionStyle}"
+                           Foreground="{ThemeResource FPTextTertiaryBrush}"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="{x:Bind loc:L.S('tokenWizard_tokenHeader'), Mode=OneTime}"
+                           Style="{StaticResource FPCaptionStyle}"
+                           Foreground="{ThemeResource FPTextSecondaryBrush}"/>
+                <TextBox PlaceholderText="{x:Bind loc:L.S('tokenWizard_paste_placeholder'), Mode=OneTime}"
+                         Text="{x:Bind ViewModel.Token, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{x:Bind ViewModel.IsIdle, Mode=OneWay}"
+                         AcceptsReturn="False"
+                         FontFamily="Consolas"
+                         MinHeight="44"/>
+            </StackPanel>
+
+            <Button Content="{x:Bind loc:L.S('account_verify'), Mode=OneTime}"
+                    Command="{x:Bind ViewModel.AddTokenCommand}"
+                    IsEnabled="{x:Bind ViewModel.IsIdle, Mode=OneWay}"
+                    Style="{StaticResource AccentButtonStyle}"
+                    HorizontalAlignment="Stretch"/>
+
+            <ProgressRing IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                          Visibility="{x:Bind local:TokenWizardView.BoolToVis(ViewModel.IsBusy), Mode=OneWay}"
+                          Width="32" Height="32"
+                          HorizontalAlignment="Center"/>
+
+            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                       Visibility="{x:Bind local:TokenWizardView.BoolToVis(ViewModel.HasError), Mode=OneWay}"
+                       Style="{StaticResource FPBodyStyle}"
+                       Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                       TextWrapping="Wrap"/>
+
+            <StackPanel Visibility="{x:Bind local:TokenWizardView.BoolToVis(ViewModel.Succeeded), Mode=OneWay}"
+                        Spacing="8">
+                <TextBlock Text="{x:Bind loc:L.S('tokenWizard_success_title'), Mode=OneTime}"
+                           Style="{StaticResource FPBodyStyle}"
+                           Foreground="{ThemeResource FPAccentBrush}"
+                           FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Bind ViewModel.SuccessSummary, Mode=OneWay}"
+                           Style="{StaticResource FPBodyStyle}"
+                           Foreground="{ThemeResource FPTextSecondaryBrush}"
+                           TextWrapping="Wrap"/>
+                <TextBlock Text="{x:Bind loc:L.S('tokenWizard_success_body'), Mode=OneTime}"
+                           Style="{StaticResource FPMonoSmallStyle}"
+                           Foreground="{ThemeResource FPTextTertiaryBrush}"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <!-- Versioning compartido entre todos los .csproj -->
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
+
+    <!-- C# 13 y nullable por defecto -->
+    <LangVersion>13</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <!-- Metadatos compartidos -->
+    <Company>Color Vivo Internet, SL</Company>
+    <Authors>David Carrero</Authors>
+    <Copyright>© 2026 Color Vivo Internet, SL</Copyright>
+    <Product>FlarePurge</Product>
+
+    <!-- Determinismo para builds reproducibles en CI -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="FlarePurge.App.Views.KillSwitchView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="{ThemeResource FPMicaBaseBrush}">
+        <StackPanel VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Spacing="16"
+                    MaxWidth="420"
+                    Padding="24">
+            <Border Width="80" Height="80"
+                    CornerRadius="40"
+                    Background="{ThemeResource FPDangerSubtleBrush}"
+                    HorizontalAlignment="Center">
+                <FontIcon Glyph="&#xE711;"
+                          FontSize="32"
+                          Foreground="{ThemeResource FPDangerBrush}"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          AutomationProperties.AccessibilityView="Raw"/>
+            </Border>
+
+            <TextBlock Text="§ FUERA DE SERVICIO"
+                       Style="{StaticResource FPOverlineStyle}"
+                       HorizontalAlignment="Center"
+                       Foreground="{ThemeResource FPDangerBrush}"/>
+
+            <TextBlock Text="FlarePurge está temporalmente deshabilitado"
+                       Style="{StaticResource FPH3Style}"
+                       Foreground="{ThemeResource FPTextPrimaryBrush}"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Center"/>
+
+            <TextBlock x:Name="MessageText"
+                       Style="{StaticResource FPBodyStyle}"
+                       Foreground="{ThemeResource FPTextSecondaryBrush}"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Center"/>
+
+            <HyperlinkButton Content="flarepurge.com"
+                             NavigateUri="https://flarepurge.com"
+                             HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

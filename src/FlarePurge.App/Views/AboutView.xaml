@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="FlarePurge.App.Views.AboutView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="using:FlarePurge.App.Localization">
+
+    <UserControl.KeyboardAccelerators>
+        <KeyboardAccelerator Key="Escape" Invoked="OnEscape"/>
+    </UserControl.KeyboardAccelerators>
+
+    <Grid Padding="12,4,12,8" RowSpacing="10" MaxWidth="500" HorizontalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="HeaderOverline"
+                   Grid.Row="0"
+                   Text="{x:Bind loc:L.S('about_overline'), Mode=OneTime}"
+                   Style="{StaticResource FPOverlineStyle}"
+                   HorizontalAlignment="Center"/>
+
+        <Image Grid.Row="1"
+               Source="ms-appx:///Assets/Square150x150Logo.scale-200.png"
+               Width="64" Height="64"
+               HorizontalAlignment="Center"/>
+
+        <StackPanel Grid.Row="2" Spacing="2" HorizontalAlignment="Center">
+            <TextBlock Text="{x:Bind ViewModel.AppName}"
+                       Style="{StaticResource FPH2Style}"
+                       Foreground="{ThemeResource FPTextPrimaryBrush}"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="{x:Bind ViewModel.Tagline}"
+                       Style="{StaticResource FPCaptionStyle}"
+                       Foreground="{ThemeResource FPTextSecondaryBrush}"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"/>
+            <TextBlock Text="{x:Bind ViewModel.Version}"
+                       Style="{StaticResource FPMonoSmallStyle}"
+                       Foreground="{ThemeResource FPTextTertiaryBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="3"
+                Padding="14,10"
+                CornerRadius="{StaticResource FPCornerCard}"
+                Background="{ThemeResource FPMicaCardBrush}">
+            <Grid ColumnSpacing="14" RowSpacing="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Bind loc:L.S('about_spec_builtWith'), Mode=OneTime}"
+                           Style="{StaticResource FPOverlineStyle}"
+                           Foreground="{ThemeResource FPTextTertiaryBrush}"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.BuiltWith}"
+                           Style="{StaticResource FPBodyStyle}"
+                           Foreground="{ThemeResource FPTextPrimaryBrush}"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Bind loc:L.S('about_spec_backend'), Mode=OneTime}"
+                           Style="{StaticResource FPOverlineStyle}"
+                           Foreground="{ThemeResource FPTextTertiaryBrush}"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.Backend}"
+                           Style="{StaticResource FPBodyStyle}"
+                           Foreground="{ThemeResource FPTextPrimaryBrush}"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Bind loc:L.S('about_spec_tracking'), Mode=OneTime}"
+                           Style="{StaticResource FPOverlineStyle}"
+                           Foreground="{ThemeResource FPTextTertiaryBrush}"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.Tracking}"
+                           Style="{StaticResource FPBodyStyle}"
+                           Foreground="{ThemeResource FPTextPrimaryBrush}"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="{x:Bind loc:L.S('about_spec_tokenStorage'), Mode=OneTime}"
+                           Style="{StaticResource FPOverlineStyle}"
+                           Foreground="{ThemeResource FPTextTertiaryBrush}"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{x:Bind ViewModel.TokenStorage}"
+                           Style="{StaticResource FPBodyStyle}"
+                           Foreground="{ThemeResource FPTextPrimaryBrush}"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="{x:Bind loc:L.S('about_spec_languages'), Mode=OneTime}"
+                           Style="{StaticResource FPOverlineStyle}"
+                           Foreground="{ThemeResource FPTextTertiaryBrush}"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{x:Bind ViewModel.Languages}"
+                           Style="{StaticResource FPBodyStyle}"
+                           Foreground="{ThemeResource FPTextPrimaryBrush}"/>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="{x:Bind loc:L.S('about_spec_price'), Mode=OneTime}"
+                           Style="{StaticResource FPOverlineStyle}"
+                           Foreground="{ThemeResource FPTextTertiaryBrush}"/>
+                <TextBlock Grid.Row="5" Grid.Column="1" Text="{x:Bind ViewModel.Price}"
+                           Style="{StaticResource FPBodyStyle}"
+                           Foreground="{ThemeResource FPAccentBrush}"
+                           FontWeight="SemiBold"/>
+            </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="4"
+                   Text="{x:Bind ViewModel.Copyright}"
+                   Style="{StaticResource FPCaptionStyle}"
+                   Foreground="{ThemeResource FPTextSecondaryBrush}"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"
+                   HorizontalAlignment="Center"/>
+
+        <StackPanel Grid.Row="5"
+                    Orientation="Horizontal"
+                    Spacing="14"
+                    HorizontalAlignment="Center">
+            <HyperlinkButton Content="{x:Bind loc:L.S('about_webMenu'), Mode=OneTime}"
+                             NavigateUri="{x:Bind ViewModel.Website}"
+                             Padding="0"/>
+            <HyperlinkButton Content="{x:Bind loc:L.S('about_privacy'), Mode=OneTime}"
+                             NavigateUri="{x:Bind ViewModel.PrivacyUrl}"
+                             Padding="0"/>
+            <HyperlinkButton Content="{x:Bind loc:L.S('about_githubMenu'), Mode=OneTime}"
+                             NavigateUri="{x:Bind ViewModel.RepositoryUrl}"
+                             Padding="0"/>
+            <HyperlinkButton Content="{x:Bind loc:L.S('about_supportMenu'), Mode=OneTime}"
+                             Click="OnSupportEmailClick"
+                             Padding="0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="6"
+                    Spacing="4"
+                    HorizontalAlignment="Center">
+            <TextBlock Text="{x:Bind ViewModel.MadeWith}"
+                       Style="{StaticResource FPCaptionStyle}"
+                       Foreground="{ThemeResource FPTextSecondaryBrush}"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"/>
+            <TextBlock Text="{x:Bind ViewModel.CloudflareDisclaimer}"
+                       Style="{StaticResource FPOverlineStyle}"
+                       Foreground="{ThemeResource FPTextTertiaryBrush}"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

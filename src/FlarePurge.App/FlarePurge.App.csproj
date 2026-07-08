@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <RootNamespace>FlarePurge.App</RootNamespace>
+    <AssemblyName>FlarePurge.App</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <WindowsPackageType>MSIX</WindowsPackageType>
+    <DefaultLanguage>en</DefaultLanguage>
+
+    <!-- MSIX packaging is framework-dependent: the app ships against the
+         Windows App Runtime that Store installs alongside. Trimming/ReadyToRun
+         require self-contained single-file publish, which is incompatible
+         with MSIX; disable them so /p:UapAppxPackageBuildMode=StoreUpload works. -->
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <PublishTrimmed>false</PublishTrimmed>
+
+    <!-- .resw recursos localizados -->
+    <ResourceLanguages>en;ar;ca;de;el;es;es-MX;fr;he;hu;it;ja;ko;nb;nl;pl;pt-PT;ro;sv;th;zh-Hans</ResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.*" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.*" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.*" />
+    <PackageReference Include="H.NotifyIcon.WinUI" Version="2.*" />
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlarePurge.Core\FlarePurge.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Assets visibles en el paquete MSIX + copiados a bin/ para sideload con Add-AppxPackage -Register -->
+    <Content Include="Assets\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!--
+    PRIResource items for Strings\**\*.resw are auto-discovered by the SDK.
+    Language mix is governed by <ResourceLanguages> above.
+
+    Publish profile unpackaged (opcional para testing local sin Partner Center):
+      dotnet publish -p:PublishProfile=Properties\PublishProfiles\win-x64.pubxml
+  -->
+
+</Project>
