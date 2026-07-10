@@ -10,6 +10,119 @@ Change history for **FlarePurge for Windows**. Format based on
 > Some entries reference cross-platform parity work (macOS / Android) that lives
 > in separate repositories.
 
+## [1.7.3] — 2026-07-10 _(security hardening + version parity with macOS)_
+
+> Version jump **1.0.x → 1.7.3** to align the number with the Apple/macOS and
+> Android apps (single ecosystem version). A hardening release following a
+> specialist security board review: solid fundamentals (real fail-closed cert
+> pinning, secrets in the Credential Locker/DPAPI, verified "no tracking"),
+> fixing a cluster of concurrency/crash/data-loss bugs — the Windows equivalents
+> of what was found on Apple — plus a second pass on network, supply-chain and
+> UX robustness.
+
+### Fixed — concurrency and data loss
+- **Favorites lost across accounts** (High): toggling a favorite on one account no
+  longer wipes the favorites of the others. The global list was rebuilt only from
+  the active account's zones; it now preserves favorites of non-visible zones.
+- **Bulk purge crash** (High): the parallel work no longer reads the shared zone
+  list from its worker threads while the UI mutates it during a background
+  refresh — that caused an `InvalidOperationException` that killed the process. It
+  now uses a snapshot.
+- **Cache poisoning on account switch** (High): an in-flight silent refresh no
+  longer paints or caches another account's zones if you switch accounts while it
+  resolves (the token is resolved per request). The result is dropped if the active
+  account changed.
+
+### Fixed — robustness / crash-safety
+- A 200 response with a malformed zone (missing or wrong-typed field) no longer
+  crashes: it maps to a decoding error like everything else.
+- On-disk state files (`accounts.v1.json`, `zones.v1.json`) locked by antivirus/
+  backup or containing a null field no longer crash startup; they degrade to empty.
+- **Crash-safe UI handlers** (High): async event handlers (purge, refresh, account
+  switch, dialogs, settings/about/history) only caught Cloudflare API errors; any
+  other exception (a concurrent dialog, an I/O failure, a vault limit) bubbled up
+  through `async void` and **killed the process**. They now all go through a common
+  wrapper that logs the error and shows a generic notice instead of exiting. A
+  last-resort net was added: an unhandled exception is logged and the app stays
+  alive rather than terminating.
+
+### Fixed — UX
+- The Settings **"Confirm bulk purge"** toggle now actually works: bulk operations
+  were reading the single-zone confirm preference by mistake, so a whole-account
+  purge could fire with no prompt.
+
+### Security
+- **TLS**: the pinned client no longer follows automatic redirects
+  (`AllowAutoRedirect=false`) — a 3xx redirect could carry the request outside the
+  pinned perimeter.
+- **Masked token in the wizard**: the API-key field is now a `PasswordBox` (was a
+  plain `TextBox`). The token is no longer visible on screen, in screenshots or in
+  screen shares, and the system spell-checker/dictionary no longer persists it. An
+  optional "peek" button lets you verify the paste.
+- **Sanitized `crash.log`**: the crash log redacts identifiers and secrets (32-hex
+  zone/account IDs, `Bearer …`, emails, long token-like sequences), caps message
+  length and rotates by size (64 KB → `crash.log.1`). Prevents CWE-532 if a server
+  error's text ever flows into an exception.
+- **Supply chain** (S1/S2/S3): `packages.lock.json` generated and committed for all
+  three projects; all NuGet dependencies pinned to exact versions (wildcard →
+  exact; FluentAssertions held at 6.12.x due to the commercial licence of 7.x+);
+  CI restore uses `--locked-mode`; GitHub Actions pinned by commit SHA instead of
+  mutable tags. A compromised release of any package or action can no longer slip
+  silently into the Store build.
+
+### Fixed — network and input robustness (second pass)
+- **Zone identifier validation** (N2): the zoneId is validated as URL-path-safe
+  before being interpolated into the API path, so a tampered value (from disk cache
+  or a server payload) cannot inject path segments.
+- **Response size limit** (N3): API responses are read with a 16 MB cap
+  (`LimitedReadStream`) so an oversized or malicious body cannot exhaust memory in
+  the parser. The remote kill-switch `message` is truncated (500 chars) and its
+  download bounded (64 KB).
+- **Robust TLS error classification** (N5): a secure-connection failure is detected
+  by the `HttpRequestError.SecureConnectionError` type instead of sniffing for
+  "SSL/TLS/certificate" in the text (which breaks with localized OS messages).
+- **Unreadable API error messages** (I3): the 16 `error.*` keys were missing from
+  the `.resw` files, so any Cloudflare error showed the raw key (e.g.
+  "error.notFound") instead of text. Real, localized messages are now shown
+  (invalid/expired token, missing permission, rate limit, timeout, server error…).
+
+### Fixed — UX and crash-safety (second pass)
+- **Cancelable bulk purge** (C2): the bulk purge progress dialog (favorites /
+  account) now has a **Cancel** button. Previously, with 429 rate limiting +
+  Retry-After (up to 60 s × 4 per zone), the user was trapped with no way out; it
+  now cancels in-flight requests and the summary reflects what completed.
+- **Tray favorite purge with the wrong account** (C4): purging a favorite from the
+  tray used the active account's token, causing 403/404 when the favorite belonged
+  to another account. Each favorite now stores its owning account and purges with
+  the correct token.
+- **Single instance + collision-safe file writes** (C7): FlarePurge is now
+  single-instance — a second launch redirects activation to the already-open
+  instance (brings it to front, even from the tray) and exits, instead of running a
+  second process that competes for the state files. Writes to
+  `accounts.v1.json` / `zones.v1.json` use a per-process unique temp file (was a
+  fixed `.tmp`) with cleanup on failure.
+- **Failed selective purge shown as success** (X4): the zone-detail result banner
+  now reflects the actual failure instead of always painting success.
+- **Purge-history leak** (C5): the history dialog no longer leaks its `ListView`
+  (or leaves handlers touching the UI from worker threads) — it unsubscribes when
+  closed.
+- **Token in memory** (G1): the wizard clears the token from the view-model as soon
+  as it is saved to the vault, so it is not retained in memory.
+- **Demo mode blocked in Release** (G3): demo-mode activation (fake data for Store
+  screenshots) is compiled in Debug only; a Release/Store build can no longer be
+  toggled into it via env var, argument or a `demo.flag` file.
+- **Orphaned token cleanup** (G2): at startup, FlarePurge removes Credential Vault
+  entries that no stored account references (e.g. after a partial corruption of
+  `accounts.v1.json`). Safe by design: it **only acts when the accounts file was
+  read with certainty**; if the read degrades (antivirus/backup lock) it deletes
+  nothing, so live tokens are never lost. Scoped to FlarePurge's own resource,
+  never other apps' credentials.
+- **More accurate Store claims** (P1/D2): the listing (ES+EN) qualifies "tokens
+  don't leave your device" (Windows may sync the Credential Vault if you have
+  roaming/MSA sync on), clarifies "zero third-party SDKs" → no analytics/tracking
+  SDKs, and discloses the startup beacon to `flarepurge.com/status.json` (kill
+  switch, no identifiers, fail-open).
+
 ## [1.0.2] — 2026-04-26
 
 > This release contains the work that was prepared as 1.0.1 locally but never
