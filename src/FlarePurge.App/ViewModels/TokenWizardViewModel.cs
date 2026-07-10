@@ -67,6 +67,9 @@ public sealed partial class TokenWizardViewModel : ObservableObject
             PersistAccount(trimmed, result);
             SuccessSummary = FormatSummary(result);
             Succeeded = true;
+            // G1: drop the plaintext token from the view-model once it's safely in the
+            // vault, so it doesn't linger in memory (or reappear if the view is reused).
+            Token = string.Empty;
             TokenSaved?.Invoke(this, EventArgs.Empty);
         }
         catch (CloudflareApiException ex)

@@ -68,27 +68,21 @@ public sealed class JsonZoneCacheStore : IZoneCacheStore
         try
         {
             using var stream = File.OpenRead(_path);
-            return JsonSerializer.Deserialize(stream, CoreJsonContext.Default.ZoneCacheData)
-                ?? new ZoneCacheData(Array.Empty<ZoneCacheEntry>());
+            var data = JsonSerializer.Deserialize(stream, CoreJsonContext.Default.ZoneCacheData);
+            if (data is null) return new ZoneCacheData(Array.Empty<ZoneCacheEntry>());
+            // A valid file with "entries": null would NRE on the next Get().
+            return data.Entries is null ? data with { Entries = Array.Empty<ZoneCacheEntry>() } : data;
         }
-        catch (JsonException)
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
+            // Corrupt or unreadable — degrade to empty rather than crash.
             return new ZoneCacheData(Array.Empty<ZoneCacheEntry>());
         }
     }
 
     private void Write(ZoneCacheData data)
-    {
-        var directory = Path.GetDirectoryName(_path);
-        if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
-
-        var tempPath = _path + ".tmp";
-        using (var stream = File.Create(tempPath))
-        {
-            JsonSerializer.Serialize(stream, data, CoreJsonContext.Default.ZoneCacheData);
-        }
-        File.Move(tempPath, _path, overwrite: true);
-    }
+        => AtomicFile.Write(_path, stream =>
+            JsonSerializer.Serialize(stream, data, CoreJsonContext.Default.ZoneCacheData));
 
     public static string DefaultPath()
     {

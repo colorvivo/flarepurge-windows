@@ -22,21 +22,25 @@ jobs:
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
     steps:
+      # Actions pinned to commit SHAs (audit S3): a mutable tag like @v4 can be
+      # repointed at malicious code. Update the SHA deliberately when bumping.
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           global-json-file: global.json
 
       - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
         with:
           msbuild-architecture: x64
 
       - name: Restore
-        run: dotnet restore FlarePurge.sln
+        # --locked-mode fails the build if restore would deviate from the committed
+        # packages.lock.json (audit S1) — no floating deps sneak into a Store build.
+        run: dotnet restore FlarePurge.sln --locked-mode
 
       - name: Build Core
         run: dotnet build src/FlarePurge.Core/FlarePurge.Core.csproj --configuration Release --no-restore
@@ -56,7 +60,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: test-results
           path: TestResults/**/*
@@ -75,7 +79,7 @@ jobs:
           /p:AppxPackageDir=${{ github.workspace }}\msix-output\
 
       - name: Upload MSIX (x64)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: FlarePurge-msix-x64
           path: msix-output/**/*.msix
@@ -84,7 +88,7 @@ jobs:
 
       - name: Upload build logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: build-logs
           path: |

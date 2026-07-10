@@ -13,12 +13,25 @@ public sealed class ZoneJsonConverter : JsonConverter<Zone>
         using var doc = JsonDocument.ParseValue(ref reader);
         var root = doc.RootElement;
 
-        var id = root.GetProperty("id").GetString()
-            ?? throw new JsonException("Zone.id missing or not a string");
-        var name = root.GetProperty("name").GetString()
-            ?? throw new JsonException("Zone.name missing or not a string");
-        var status = root.GetProperty("status").GetString()
-            ?? throw new JsonException("Zone.status missing or not a string");
+        // GetProperty(...) throws KeyNotFoundException on a missing key and
+        // GetString() throws InvalidOperationException on a non-string value —
+        // neither is a JsonException, so they would escape ApiClient's decoding
+        // catch and crash. Require the field as a JsonException instead so a
+        // malformed 200 response maps cleanly to CloudflareApiError.Decoding.
+        static string RequireString(JsonElement obj, string prop)
+        {
+            if (obj.TryGetProperty(prop, out var el)
+                && el.ValueKind == JsonValueKind.String
+                && el.GetString() is { } value)
+            {
+                return value;
+            }
+            throw new JsonException($"Zone.{prop} missing or not a string");
+        }
+
+        var id = RequireString(root, "id");
+        var name = RequireString(root, "name");
+        var status = RequireString(root, "status");
 
         IReadOnlyList<string>? nameServers = null;
         if (root.TryGetProperty("name_servers", out var ns) && ns.ValueKind == JsonValueKind.Array)

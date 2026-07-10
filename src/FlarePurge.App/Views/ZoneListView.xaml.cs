@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FlarePurge.App.Localization;
 using FlarePurge.App.ViewModels;
@@ -128,7 +129,8 @@ public sealed partial class ZoneListView : UserControl
     private void OnReauthClick(object sender, RoutedEventArgs e)
         => ReauthRequested?.Invoke(this, EventArgs.Empty);
 
-    private async void OnPurgeAccountClick(object sender, RoutedEventArgs e)
+    private void OnPurgeAccountClick(object sender, RoutedEventArgs e)
+        => Safe.Fire(XamlRoot, async () =>
     {
         if (sender is not Button button) return;
         if (!ViewModel.HasAccountFilterActive) return;
@@ -140,7 +142,11 @@ public sealed partial class ZoneListView : UserControl
         try
         {
             var prefs = App.Services.GetRequiredService<IAccountStore>().GetPreferences();
-            if (prefs.ConfirmPurgeEverything)
+            // Bulk operations honour the dedicated bulk-confirm preference (this
+            // used to read ConfirmPurgeEverything, leaving the bulk toggle dead —
+            // a user who turned off single-zone confirm could fire a whole-account
+            // purge with no prompt).
+            if (prefs.ConfirmBulkPurge)
             {
                 var title = count == 1
                     ? L.Format("bulk_confirmAccountOne", accountName)
@@ -156,9 +162,10 @@ public sealed partial class ZoneListView : UserControl
             var progressLabel = count == 1
                 ? L.Format("bulk_progressAccountFmt", 1, accountName)
                 : L.Format("bulk_progressAccountFmt", count, accountName);
-            var progress = StartBulkProgressDialog(count, progressLabel);
+            using var cts = new CancellationTokenSource();
+            var progress = StartBulkProgressDialog(count, cts, progressLabel);
             _ = progress.ShowAsync();
-            var summary = await ViewModel.PurgeAllInCfAccountAsync(accountName).ConfigureAwait(true);
+            var summary = await ViewModel.PurgeAllInCfAccountAsync(accountName, cts.Token).ConfigureAwait(true);
             progress.Hide();
 
             await ShowBulkOutcomeAsync(summary).ConfigureAwait(true);
@@ -167,9 +174,10 @@ public sealed partial class ZoneListView : UserControl
         {
             button.IsEnabled = true;
         }
-    }
+    });
 
-    private async void OnPurgeFavoritesClick(object sender, RoutedEventArgs e)
+    private void OnPurgeFavoritesClick(object sender, RoutedEventArgs e)
+        => Safe.Fire(XamlRoot, async () =>
     {
         if (sender is not Button button) return;
         button.IsEnabled = false;
@@ -179,7 +187,9 @@ public sealed partial class ZoneListView : UserControl
             if (count == 0) return;
 
             var prefs = App.Services.GetRequiredService<IAccountStore>().GetPreferences();
-            if (prefs.ConfirmPurgeEverything)
+            // Bulk favourites purge honours the bulk-confirm preference (see note
+            // in OnPurgeAccountClick).
+            if (prefs.ConfirmBulkPurge)
             {
                 var title = count == 1
                     ? L.S("bulk_confirmFavOne")
@@ -192,9 +202,10 @@ public sealed partial class ZoneListView : UserControl
                 if (!confirmed) return;
             }
 
-            var progress = StartBulkProgressDialog(count);
+            using var cts = new CancellationTokenSource();
+            var progress = StartBulkProgressDialog(count, cts);
             _ = progress.ShowAsync();
-            var summary = await ViewModel.PurgeAllFavoritesAsync().ConfigureAwait(true);
+            var summary = await ViewModel.PurgeAllFavoritesAsync(cts.Token).ConfigureAwait(true);
             progress.Hide();
 
             await ShowBulkOutcomeAsync(summary).ConfigureAwait(true);
@@ -203,9 +214,9 @@ public sealed partial class ZoneListView : UserControl
         {
             button.IsEnabled = true;
         }
-    }
+    });
 
-    private ContentDialog StartBulkProgressDialog(int count, string? labelOverride = null)
+    private ContentDialog StartBulkProgressDialog(int count, CancellationTokenSource cts, string? labelOverride = null)
     {
         var label = labelOverride ?? (count == 1
             ? L.S("bulk_progressFavOne")
@@ -217,12 +228,18 @@ public sealed partial class ZoneListView : UserControl
             Text = label,
             HorizontalAlignment = HorizontalAlignment.Center,
         });
-        return new ContentDialog
+        var dialog = new ContentDialog
         {
             XamlRoot = XamlRoot,
             Title = L.S("bulk_dialogTitle"),
             Content = stack,
+            // C2: a Cancel button so a bulk purge stuck on 429 + Retry-After (up to
+            // 60s × 4 per zone) isn't a trap. Cancels the in-flight requests; the
+            // summary then reports whatever completed.
+            CloseButtonText = L.S("action_cancel"),
         };
+        dialog.CloseButtonClick += (_, _) => cts.Cancel();
+        return dialog;
     }
 
     private async Task ShowBulkOutcomeAsync(BulkPurgeSummary summary)
@@ -276,11 +293,12 @@ public sealed partial class ZoneListView : UserControl
         await ShowOutcomeDialogAsync(zone, outcome).ConfigureAwait(true);
     }
 
-    private async void OnContextPurgeClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement fe && fe.Tag is ZoneDisplayItem zone)
-            await PurgeZoneEverythingAsync(zone).ConfigureAwait(true);
-    }
+    private void OnContextPurgeClick(object sender, RoutedEventArgs e)
+        => Safe.Fire(XamlRoot, async () =>
+        {
+            if (sender is FrameworkElement fe && fe.Tag is ZoneDisplayItem zone)
+                await PurgeZoneEverythingAsync(zone).ConfigureAwait(true);
+        });
 
     private void OnContextOpenDetailClick(object sender, RoutedEventArgs e)
     {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -176,37 +177,46 @@ public sealed partial class ZoneListViewModel : ObservableObject
             .FirstOrDefault();
     }
 
-    public async Task<PurgeOutcome> PurgeEverythingAsync(string zoneId)
+    public Task<PurgeOutcome> PurgeEverythingAsync(string zoneId, CancellationToken ct = default)
     {
+        // Resolve the display name here, on the caller's thread. The bulk path
+        // must NOT re-read _allZones from its parallel workers (see PurgeManyAsync).
         var zoneName = _allZones.FirstOrDefault(z => z.Id == zoneId)?.Name ?? zoneId;
+        return PurgeZoneAsync(zoneId, zoneName, ct);
+    }
+
+    private async Task<PurgeOutcome> PurgeZoneAsync(string zoneId, string zoneName, CancellationToken ct = default)
+    {
         try
         {
-            var result = await _cache.PurgeEverythingAsync(zoneId).ConfigureAwait(true);
+            var result = await _cache.PurgeEverythingAsync(zoneId, ct).ConfigureAwait(true);
             _history.Record(new PurgeHistoryEntry(
                 DateTimeOffset.Now, PurgeKind.Everything, zoneName, 1, true, result.Id, null));
             return PurgeOutcome.Ok(result.Id);
         }
         catch (CloudflareApiException ex)
         {
+            // A cancelled request surfaces as CloudflareApiError.Cancelled (mapped in
+            // ApiClient), so C2 cancellation flows through this typed path too.
             _history.Record(new PurgeHistoryEntry(
                 DateTimeOffset.Now, PurgeKind.Everything, zoneName, 1, false, null, ex.Error.UserMessage));
             return PurgeOutcome.Failure(ex.Error.UserMessage);
         }
     }
 
-    public async Task<BulkPurgeSummary> PurgeAllFavoritesAsync()
+    public async Task<BulkPurgeSummary> PurgeAllFavoritesAsync(CancellationToken ct = default)
     {
-        var summary = await PurgeManyAsync(_allZones.Where(z => z.IsFavorite).ToArray()).ConfigureAwait(true);
+        var summary = await PurgeManyAsync(_allZones.Where(z => z.IsFavorite).ToArray(), ct).ConfigureAwait(true);
         RecordBulkSummary(PurgeKind.BulkFavorites, L.S("history_bulkFavsLabel"), summary);
         return summary;
     }
 
-    public async Task<BulkPurgeSummary> PurgeAllInCfAccountAsync(string cfAccountName)
+    public async Task<BulkPurgeSummary> PurgeAllInCfAccountAsync(string cfAccountName, CancellationToken ct = default)
     {
         var zones = _allZones
             .Where(z => string.Equals(z.AccountName, cfAccountName, StringComparison.OrdinalIgnoreCase))
             .ToArray();
-        var summary = await PurgeManyAsync(zones).ConfigureAwait(true);
+        var summary = await PurgeManyAsync(zones, ct).ConfigureAwait(true);
         RecordBulkSummary(PurgeKind.BulkAccount, cfAccountName, summary);
         return summary;
     }
@@ -224,19 +234,29 @@ public sealed partial class ZoneListViewModel : ObservableObject
     public int CountZonesInCfAccount(string cfAccountName)
         => _allZones.Count(z => string.Equals(z.AccountName, cfAccountName, StringComparison.OrdinalIgnoreCase));
 
-    private async Task<BulkPurgeSummary> PurgeManyAsync(IReadOnlyCollection<ZoneDisplayItem> zones)
+    private async Task<BulkPurgeSummary> PurgeManyAsync(IReadOnlyCollection<ZoneDisplayItem> zones, CancellationToken ct = default)
     {
         if (zones.Count == 0) return BulkPurgeSummary.Empty;
 
         var outcomes = new ConcurrentBag<(string Name, PurgeOutcome Outcome)>();
-        await Parallel.ForEachAsync(
-            zones,
-            new ParallelOptions { MaxDegreeOfParallelism = 8 },
-            async (zone, _) =>
-            {
-                var outcome = await PurgeEverythingAsync(zone.Id).ConfigureAwait(false);
-                outcomes.Add((zone.Name, outcome));
-            }).ConfigureAwait(true);
+        try
+        {
+            await Parallel.ForEachAsync(
+                zones,
+                new ParallelOptions { MaxDegreeOfParallelism = 8, CancellationToken = ct },
+                async (zone, token) =>
+                {
+                    // Use the snapshot's name; never read _allZones here (the UI thread
+                    // may be mutating it via a concurrent silent refresh → crash).
+                    var outcome = await PurgeZoneAsync(zone.Id, zone.Name, token).ConfigureAwait(false);
+                    outcomes.Add((zone.Name, outcome));
+                }).ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            // C2: the user cancelled. Summarise whatever completed; zones never
+            // scheduled simply aren't counted.
+        }
 
         var ordered = outcomes.OrderBy(o => o.Name, StringComparer.OrdinalIgnoreCase).ToArray();
         var success = ordered.Count(o => o.Outcome.Success);
@@ -294,6 +314,15 @@ public sealed partial class ZoneListViewModel : ObservableObject
         try
         {
             var zones = await _zones.FetchAllZonesAsync().ConfigureAwait(true);
+
+            // The active account may have changed while this fetch was in flight.
+            // The Bearer token is resolved per-request from whatever account is
+            // active NOW, so these zones may belong to a different account than the
+            // one we started for. If so, drop the result — never paint it or, worse,
+            // cache it under `activeId` (which would poison that account's cache with
+            // another account's zones). The now-active account's own load repaints.
+            if (activeId != _store.GetActiveAccountId()) return;
+
             ApplyZones(zones);
             LastUpdatedAt = DateTimeOffset.UtcNow;
             IsFromCache = false;
@@ -447,15 +476,16 @@ public sealed partial class ZoneListViewModel : ObservableObject
 
     private void PersistFavorites()
     {
-        var now = DateTimeOffset.UtcNow;
-        var existingByZone = _store.GetFavorites().ToDictionary(f => f.Id, StringComparer.Ordinal);
-        var updated = _allZones
-            .Where(z => z.IsFavorite)
-            .Select(z => existingByZone.TryGetValue(z.Id, out var prev)
-                ? prev
-                : new FavoriteZone(z.Id, z.Name, null, now))
+        // Favorites belong to a single GLOBAL list, but _allZones only holds the
+        // ACTIVE account's zones. FavoritesMerge preserves the favorites of every
+        // other account (audit C1) — it lives in Core so it's unit-tested there.
+        var visible = _allZones
+            .Select(z => new VisibleZone(z.Id, z.Name, z.IsFavorite))
             .ToArray();
-        _store.SaveFavorites(updated);
+        // _allZones are the active account's zones, so it owns any newly-favorited
+        // zone (audit C4: lets the tray purge with the right token).
+        var ownerId = _store.GetActiveAccountId();
+        _store.SaveFavorites(FavoritesMerge.Merge(_store.GetFavorites(), visible, ownerId, DateTimeOffset.UtcNow));
     }
 
     private void RefreshFilter()

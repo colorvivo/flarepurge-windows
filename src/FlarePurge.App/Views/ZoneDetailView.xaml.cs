@@ -34,14 +34,14 @@ public sealed partial class ZoneDetailView : UserControl
         BackRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    private async void OnPurgeEverythingClick(object sender, RoutedEventArgs e)
-        => await PurgeEverythingAsync().ConfigureAwait(true);
+    private void OnPurgeEverythingClick(object sender, RoutedEventArgs e)
+        => Safe.Fire(XamlRoot, PurgeEverythingAsync);
 
-    private async void OnCtrlShiftP(Microsoft.UI.Xaml.Input.KeyboardAccelerator sender, Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
+    private void OnCtrlShiftP(Microsoft.UI.Xaml.Input.KeyboardAccelerator sender, Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
     {
         if (!ViewModel.IsIdle) return;
         args.Handled = true;
-        await PurgeEverythingAsync().ConfigureAwait(true);
+        Safe.Fire(XamlRoot, PurgeEverythingAsync);
     }
 
     private async Task PurgeEverythingAsync()
@@ -59,13 +59,16 @@ public sealed partial class ZoneDetailView : UserControl
         await ViewModel.PurgeEverythingCommand.ExecuteAsync(null);
     }
 
-    private async void OnSelectivePurgeClick(object sender, RoutedEventArgs e)
-    {
-        if (!ViewModel.IsIdle) return;
-        var cache = App.Services.GetRequiredService<ICacheService>();
-        var result = await AppDialogs.ShowSelectivePurgeAsync(XamlRoot, ViewModel.Zone, cache).ConfigureAwait(true);
-        if (result is null) return;
+    private void OnSelectivePurgeClick(object sender, RoutedEventArgs e)
+        => Safe.Fire(XamlRoot, async () =>
+        {
+            if (!ViewModel.IsIdle) return;
+            var cache = App.Services.GetRequiredService<ICacheService>();
+            var result = await AppDialogs.ShowSelectivePurgeAsync(XamlRoot, ViewModel.Zone, cache).ConfigureAwait(true);
+            if (result is null) return;
 
-        ViewModel.SetExternalResult(result.Message);
-    }
+            // X4: carry the real success flag — a failed selective purge was being
+            // painted as a success banner (SetExternalResult defaulted to true).
+            ViewModel.SetExternalResult(result.Message, result.Success);
+        });
 }

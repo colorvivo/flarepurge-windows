@@ -30,6 +30,6 @@ public sealed partial class AboutView : UserControl
         BackRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    private async void OnSupportEmailClick(object sender, RoutedEventArgs e)
-        => await Launcher.LaunchUriAsync(new Uri($"mailto:{ViewModel.SupportEmail}"));
+    private void OnSupportEmailClick(object sender, RoutedEventArgs e)
+        => Safe.Fire(XamlRoot, () => Launcher.LaunchUriAsync(new Uri($"mailto:{ViewModel.SupportEmail}")).AsTask());
 }

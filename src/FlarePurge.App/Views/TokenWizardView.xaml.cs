@@ -27,4 +27,8 @@ public sealed partial class TokenWizardView : UserControl
 
     private void OnBackClick(object sender, RoutedEventArgs e)
         => CancelRequested?.Invoke(this, EventArgs.Empty);
+
+    // D1: PasswordBox.Password no es bindable TwoWay; se propaga al VM aquí.
+    private void OnTokenChanged(object sender, RoutedEventArgs e)
+        => ViewModel.Token = TokenBox.Password;
 }

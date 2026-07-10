@@ -18,7 +18,7 @@ public sealed partial class AboutViewModel : ObservableObject
         get
         {
             var version = Assembly.GetExecutingAssembly().GetName().Version;
-            return version is null ? "1.0.2" : $"{version.Major}.{version.Minor}.{version.Build}";
+            return version is null ? "1.7.3" : $"{version.Major}.{version.Minor}.{version.Build}";
         }
     }
 

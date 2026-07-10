@@ -14,4 +14,9 @@
     <!-- Disponible automáticamente vía el target net9.0-windows10.0 — sin package extra -->
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Exponer internals (LimitedReadStream, IsCertError, RemoteStatusService.Clamp, …) al proyecto de tests. -->
+    <InternalsVisibleTo Include="FlarePurge.Tests" />
+  </ItemGroup>
+
 </Project>

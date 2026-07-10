@@ -1,9 +1,11 @@
 <Project>
   <PropertyGroup>
-    <!-- Versioning compartido entre todos los .csproj -->
-    <Version>1.0.2</Version>
-    <AssemblyVersion>1.0.2.0</AssemblyVersion>
-    <FileVersion>1.0.2.0</FileVersion>
+    <!-- Versioning compartido entre todos los .csproj.
+         Salto 1.0.x -> 1.7.3 para alinear la numeración con la app Apple/macOS
+         (paridad de versión entre plataformas). -->
+    <Version>1.7.3</Version>
+    <AssemblyVersion>1.7.3.0</AssemblyVersion>
+    <FileVersion>1.7.3.0</FileVersion>
 
     <!-- C# 13 y nullable por defecto -->
     <LangVersion>13</LangVersion>
@@ -22,5 +24,11 @@
     <!-- Determinismo para builds reproducibles en CI -->
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!-- Supply chain (audit S1): genera packages.lock.json en el próximo
+         "dotnet restore". Commitear los lockfiles y añadir la opción
+         locked-mode al restore de CI para builds reproducibles y a prueba de
+         deps flotantes. Fijar además versiones NuGet exactas. -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 </Project>

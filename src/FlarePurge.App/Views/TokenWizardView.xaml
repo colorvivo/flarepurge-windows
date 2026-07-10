@@ -43,12 +43,15 @@
                 <TextBlock Text="{x:Bind loc:L.S('tokenWizard_tokenHeader'), Mode=OneTime}"
                            Style="{StaticResource FPCaptionStyle}"
                            Foreground="{ThemeResource FPTextSecondaryBrush}"/>
-                <TextBox PlaceholderText="{x:Bind loc:L.S('tokenWizard_paste_placeholder'), Mode=OneTime}"
-                         Text="{x:Bind ViewModel.Token, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{x:Bind ViewModel.IsIdle, Mode=OneWay}"
-                         AcceptsReturn="False"
-                         FontFamily="Consolas"
-                         MinHeight="44"/>
+                <!-- D1: PasswordBox (no TextBox) para enmascarar el token en
+                     pantalla/capturas/screen-share y evitar que el corrector o
+                     el diccionario del sistema lo persistan. Password no admite
+                     x:Bind TwoWay por diseño → se empuja al VM en PasswordChanged. -->
+                <PasswordBox x:Name="TokenBox"
+                             PlaceholderText="{x:Bind loc:L.S('tokenWizard_paste_placeholder'), Mode=OneTime}"
+                             IsEnabled="{x:Bind ViewModel.IsIdle, Mode=OneWay}"
+                             PasswordChanged="OnTokenChanged"
+                             MinHeight="44"/>
             </StackPanel>
 
             <Button Content="{x:Bind loc:L.S('account_verify'), Mode=OneTime}"

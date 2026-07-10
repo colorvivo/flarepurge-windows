@@ -306,10 +306,14 @@ internal static class AppDialogs
             MaxHeight = 380,
         };
         PopulateHistoryList(list, store);
-        store.Changed += (_, _) =>
-        {
-            root.Content.DispatcherQueue?.TryEnqueue(() => PopulateHistoryList(list, store));
-        };
+
+        // C5: the store raises Changed from purge worker threads. Marshal to the UI
+        // thread, and — crucially — unsubscribe when the dialog closes. The previous
+        // code never detached this handler, so every history-open leaked its ListView
+        // (and the closure) for the app's lifetime, and stale closures kept firing.
+        void OnHistoryChanged(object? sender, EventArgs e)
+            => root.Content?.DispatcherQueue?.TryEnqueue(() => PopulateHistoryList(list, store));
+        store.Changed += OnHistoryChanged;
 
         var dialog = new ContentDialog
         {
@@ -325,7 +329,14 @@ internal static class AppDialogs
             args.Cancel = true;
             store.Clear();
         };
-        await dialog.ShowAsync();
+        try
+        {
+            await dialog.ShowAsync();
+        }
+        finally
+        {
+            store.Changed -= OnHistoryChanged;
+        }
     }
 
     private static void PopulateHistoryList(ListView list, IPurgeHistoryStore store)

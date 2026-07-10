@@ -1239,4 +1239,58 @@
   <data name="history_bulkFavsLabel" xml:space="preserve">
     <value>Preferides</value>
   </data>
+  <data name="error_unexpected_title" xml:space="preserve">
+    <value>Alguna cosa ha anat malament</value>
+  </data>
+  <data name="error_unexpected_body" xml:space="preserve">
+    <value>S'ha produït un error inesperat. L'acció s'ha cancel·lat i el detall s'ha registrat. Torna-ho a provar.</value>
+  </data>
+  <data name="error_unauthorized_invalid" xml:space="preserve">
+    <value>El teu token d'API no és vàlid. Afegeix-ne un de vàlid per continuar.</value>
+  </data>
+  <data name="error_unauthorized_expired" xml:space="preserve">
+    <value>El teu token d'API ha caducat. Afegeix-ne un de nou.</value>
+  </data>
+  <data name="error_unauthorized_revoked" xml:space="preserve">
+    <value>El teu token d'API s'ha revocat. Afegeix-ne un de nou.</value>
+  </data>
+  <data name="error_forbidden_missingScope" xml:space="preserve">
+    <value>Al teu token li falta un permís necessari: {0}.</value>
+  </data>
+  <data name="error_forbidden_generic" xml:space="preserve">
+    <value>El teu token no té permís per a aquesta acció.</value>
+  </data>
+  <data name="error_rateLimited_withRetry" xml:space="preserve">
+    <value>Límit de peticions de Cloudflare. Torna-ho a provar d'aquí a {0} s.</value>
+  </data>
+  <data name="error_rateLimited_generic" xml:space="preserve">
+    <value>Límit de peticions de Cloudflare. Torna-ho a provar d'aquí a poc.</value>
+  </data>
+  <data name="error_notFound" xml:space="preserve">
+    <value>No s'ha trobat: {0}.</value>
+  </data>
+  <data name="error_networkUnavailable" xml:space="preserve">
+    <value>Sense connexió de xarxa. Comprova el teu internet i torna-ho a provar.</value>
+  </data>
+  <data name="error_timeout" xml:space="preserve">
+    <value>La petició ha esgotat el temps. Torna-ho a provar.</value>
+  </data>
+  <data name="error_certPinning" xml:space="preserve">
+    <value>Ha fallat la comprovació de connexió segura. Actualitza FlarePurge i torna-ho a provar.</value>
+  </data>
+  <data name="error_decoding" xml:space="preserve">
+    <value>No s'ha pogut llegir la resposta de Cloudflare ({0}).</value>
+  </data>
+  <data name="error_server_withMessage" xml:space="preserve">
+    <value>Error del servidor de Cloudflare: {0}.</value>
+  </data>
+  <data name="error_server" xml:space="preserve">
+    <value>Cloudflare ha tingut un error de servidor. Torna-ho a provar més tard.</value>
+  </data>
+  <data name="error_cancelled" xml:space="preserve">
+    <value>L'operació s'ha cancel·lat.</value>
+  </data>
+  <data name="error_unknown" xml:space="preserve">
+    <value>Alguna cosa ha anat malament ({0}).</value>
+  </data>
 </root>

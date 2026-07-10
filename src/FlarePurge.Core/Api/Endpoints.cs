@@ -12,7 +12,31 @@ public static class Endpoints
     public const string Accounts = "/accounts";
     public const string Zones = "/zones";
 
-    public static string PurgeCache(string zoneId) => $"/zones/{zoneId}/purge_cache";
+    public static string PurgeCache(string zoneId)
+    {
+        // The zone id is interpolated straight into the request path. It reaches
+        // here from disk cache and server payloads, so reject anything outside the
+        // URL-path-safe id charset — otherwise a crafted value (`../`, `/`, an
+        // encoded separator, whitespace) could inject extra path segments (audit
+        // N2). Cloudflare ids are 32 hex chars; this also accepts the shorter
+        // placeholders used in tests.
+        if (!IsPathSafeId(zoneId))
+            throw new ArgumentException("Zone id contains characters that are not URL-path safe.", nameof(zoneId));
+        return $"/zones/{zoneId}/purge_cache";
+    }
+
+    /// <summary>True if <paramref name="id"/> is a non-empty run of ASCII
+    /// letters, digits, hyphen or underscore — safe to interpolate into a path.</summary>
+    public static bool IsPathSafeId(string? id)
+    {
+        if (string.IsNullOrEmpty(id)) return false;
+        foreach (var c in id)
+        {
+            if (!(char.IsAsciiLetterOrDigit(c) || c == '-' || c == '_'))
+                return false;
+        }
+        return true;
+    }
 
     public static Uri BuildUri(string path, IReadOnlyList<(string Key, string Value)>? query = null)
     {

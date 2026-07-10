@@ -216,6 +216,21 @@ public class ApiClientTests
     }
 
     [Fact]
+    public async Task Get_SecureConnectionError_NoKeywordsInMessage_MapsToCertificatePinningFailed()
+    {
+        // N5: rely on the typed HttpRequestError, not on sniffing "SSL/TLS/certificate"
+        // out of a (possibly localized) message. This message has none of those words.
+        var handler = new FakeHttpMessageHandler().EnqueueException(
+            new HttpRequestException(HttpRequestError.SecureConnectionError, "conexión no establecida"));
+        var client = Build(handler);
+
+        var act = async () => await client.GetAsync<TokenVerification>(Endpoints.VerifyToken);
+
+        var ex = (await act.Should().ThrowAsync<CloudflareApiException>()).Which;
+        ex.Error.Should().BeOfType<CloudflareApiError.CertificatePinningFailed>();
+    }
+
+    [Fact]
     public async Task Get_UnrelatedHttpException_MapsToUnknown()
     {
         var handler = new FakeHttpMessageHandler().EnqueueException(new HttpRequestException("something weird"));

@@ -101,4 +101,50 @@ public class TokenProviderFactoryTests
         ((Action)(() => TokenProviderFactory.FromActiveAccount(null!, kc))).Should().Throw<ArgumentNullException>();
         ((Action)(() => TokenProviderFactory.FromActiveAccount(store, null!))).Should().Throw<ArgumentNullException>();
     }
+
+    // --- C4: FromAccountId resolves a SPECIFIC account's token, ignoring active ---
+
+    [Fact]
+    public async Task FromAccountId_ResolvesTargetAccount_IgnoringActive()
+    {
+        var store = new InMemoryAccountStore
+        {
+            ActiveId = "acc-1", // active is acc-1, but we ask for acc-2
+            Accounts =
+            {
+                new StoredAccount("acc-1", null, "Personal", "kc-slot-1", DateTimeOffset.UtcNow),
+                new StoredAccount("acc-2", null, "Work", "kc-slot-2", DateTimeOffset.UtcNow),
+            },
+        };
+        var kc = new EphemeralKeychain();
+        kc.Save("token-one", "kc-slot-1");
+        kc.Save("token-two", "kc-slot-2");
+        var provider = TokenProviderFactory.FromAccountId(store, kc, "acc-2");
+
+        (await provider(CancellationToken.None)).Should().Be("token-two");
+    }
+
+    [Fact]
+    public async Task FromAccountId_UnknownAccount_ReturnsNull()
+    {
+        var store = new InMemoryAccountStore
+        {
+            Accounts = { new StoredAccount("acc-1", null, "a", "kc-slot-1", DateTimeOffset.UtcNow) },
+        };
+        var kc = new EphemeralKeychain();
+        kc.Save("token-one", "kc-slot-1");
+        var provider = TokenProviderFactory.FromAccountId(store, kc, "acc-nonexistent");
+
+        (await provider(CancellationToken.None)).Should().BeNull();
+    }
+
+    [Fact]
+    public void FromAccountId_NullArguments_Throw()
+    {
+        var store = new InMemoryAccountStore();
+        var kc = new EphemeralKeychain();
+
+        ((Action)(() => TokenProviderFactory.FromAccountId(null!, kc, "x"))).Should().Throw<ArgumentNullException>();
+        ((Action)(() => TokenProviderFactory.FromAccountId(store, null!, "x"))).Should().Throw<ArgumentNullException>();
+    }
 }

@@ -1239,4 +1239,58 @@
   <data name="history_bulkFavsLabel" xml:space="preserve">
     <value>Favoriten</value>
   </data>
+  <data name="error_unexpected_title" xml:space="preserve">
+    <value>Etwas ist schiefgelaufen</value>
+  </data>
+  <data name="error_unexpected_body" xml:space="preserve">
+    <value>Ein unerwarteter Fehler ist aufgetreten. Die Aktion wurde abgebrochen und die Details wurden protokolliert. Bitte versuche es erneut.</value>
+  </data>
+  <data name="error_unauthorized_invalid" xml:space="preserve">
+    <value>Dein API-Token ist ungültig. Füge ein gültiges Token hinzu, um fortzufahren.</value>
+  </data>
+  <data name="error_unauthorized_expired" xml:space="preserve">
+    <value>Dein API-Token ist abgelaufen. Füge ein neues Token hinzu.</value>
+  </data>
+  <data name="error_unauthorized_revoked" xml:space="preserve">
+    <value>Dein API-Token wurde widerrufen. Füge ein neues Token hinzu.</value>
+  </data>
+  <data name="error_forbidden_missingScope" xml:space="preserve">
+    <value>Deinem Token fehlt eine erforderliche Berechtigung: {0}.</value>
+  </data>
+  <data name="error_forbidden_generic" xml:space="preserve">
+    <value>Dein Token hat keine Berechtigung für diese Aktion.</value>
+  </data>
+  <data name="error_rateLimited_withRetry" xml:space="preserve">
+    <value>Von Cloudflare gedrosselt. Versuche es in {0} s erneut.</value>
+  </data>
+  <data name="error_rateLimited_generic" xml:space="preserve">
+    <value>Von Cloudflare gedrosselt. Versuche es gleich erneut.</value>
+  </data>
+  <data name="error_notFound" xml:space="preserve">
+    <value>Nicht gefunden: {0}.</value>
+  </data>
+  <data name="error_networkUnavailable" xml:space="preserve">
+    <value>Keine Netzwerkverbindung. Prüfe deine Internetverbindung und versuche es erneut.</value>
+  </data>
+  <data name="error_timeout" xml:space="preserve">
+    <value>Zeitüberschreitung bei der Anfrage. Versuche es erneut.</value>
+  </data>
+  <data name="error_certPinning" xml:space="preserve">
+    <value>Prüfung der sicheren Verbindung fehlgeschlagen. Aktualisiere FlarePurge und versuche es erneut.</value>
+  </data>
+  <data name="error_decoding" xml:space="preserve">
+    <value>Die Antwort von Cloudflare konnte nicht gelesen werden ({0}).</value>
+  </data>
+  <data name="error_server_withMessage" xml:space="preserve">
+    <value>Cloudflare-Serverfehler: {0}.</value>
+  </data>
+  <data name="error_server" xml:space="preserve">
+    <value>Cloudflare hatte einen Serverfehler. Versuche es später erneut.</value>
+  </data>
+  <data name="error_cancelled" xml:space="preserve">
+    <value>Der Vorgang wurde abgebrochen.</value>
+  </data>
+  <data name="error_unknown" xml:space="preserve">
+    <value>Etwas ist schiefgelaufen ({0}).</value>
+  </data>
 </root>

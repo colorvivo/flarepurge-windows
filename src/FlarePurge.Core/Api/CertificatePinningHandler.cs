@@ -37,6 +37,11 @@ public sealed class CertificatePinningHandler : HttpClientHandler
         _enabled = enabled;
         _pins = pinnedHosts ?? CloudflareApiPins;
         ServerCertificateCustomValidationCallback = ValidateCertificate;
+
+        // Never follow redirects: a 3xx from the API would carry the request (and
+        // its POST body) to a host where the pin set does not apply, silently
+        // escaping the pinned perimeter. The Cloudflare v4 API uses no redirects.
+        AllowAutoRedirect = false;
     }
 
     public static string ComputeSpkiHash(X509Certificate2 certificate)

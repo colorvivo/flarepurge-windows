@@ -1239,4 +1239,58 @@
   <data name="history_bulkFavsLabel" xml:space="preserve">
     <value>Favoritas</value>
   </data>
+  <data name="error_unexpected_title" xml:space="preserve">
+    <value>Algo salió mal</value>
+  </data>
+  <data name="error_unexpected_body" xml:space="preserve">
+    <value>Ocurrió un error inesperado. La acción se canceló y el detalle quedó registrado. Inténtalo de nuevo.</value>
+  </data>
+  <data name="error_unauthorized_invalid" xml:space="preserve">
+    <value>Tu token de API no es válido. Añade un token válido para continuar.</value>
+  </data>
+  <data name="error_unauthorized_expired" xml:space="preserve">
+    <value>Tu token de API ha caducado. Añade un token nuevo.</value>
+  </data>
+  <data name="error_unauthorized_revoked" xml:space="preserve">
+    <value>Tu token de API fue revocado. Añade un token nuevo.</value>
+  </data>
+  <data name="error_forbidden_missingScope" xml:space="preserve">
+    <value>A tu token le falta un permiso necesario: {0}.</value>
+  </data>
+  <data name="error_forbidden_generic" xml:space="preserve">
+    <value>Tu token no tiene permiso para esta acción.</value>
+  </data>
+  <data name="error_rateLimited_withRetry" xml:space="preserve">
+    <value>Límite de peticiones de Cloudflare. Reinténtalo en {0} s.</value>
+  </data>
+  <data name="error_rateLimited_generic" xml:space="preserve">
+    <value>Límite de peticiones de Cloudflare. Reinténtalo en un momento.</value>
+  </data>
+  <data name="error_notFound" xml:space="preserve">
+    <value>No encontrado: {0}.</value>
+  </data>
+  <data name="error_networkUnavailable" xml:space="preserve">
+    <value>Sin conexión de red. Revisa tu internet e inténtalo de nuevo.</value>
+  </data>
+  <data name="error_timeout" xml:space="preserve">
+    <value>La petición agotó el tiempo. Inténtalo de nuevo.</value>
+  </data>
+  <data name="error_certPinning" xml:space="preserve">
+    <value>Falló la comprobación de conexión segura. Actualiza FlarePurge e inténtalo de nuevo.</value>
+  </data>
+  <data name="error_decoding" xml:space="preserve">
+    <value>No se pudo leer la respuesta de Cloudflare ({0}).</value>
+  </data>
+  <data name="error_server_withMessage" xml:space="preserve">
+    <value>Error del servidor de Cloudflare: {0}.</value>
+  </data>
+  <data name="error_server" xml:space="preserve">
+    <value>Cloudflare tuvo un error de servidor. Inténtalo más tarde.</value>
+  </data>
+  <data name="error_cancelled" xml:space="preserve">
+    <value>La operación se canceló.</value>
+  </data>
+  <data name="error_unknown" xml:space="preserve">
+    <value>Algo salió mal ({0}).</value>
+  </data>
 </root>

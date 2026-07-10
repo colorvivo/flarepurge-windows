@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using FlarePurge.App.Localization;
@@ -9,6 +10,7 @@ using FlarePurge.Core.Api;
 using FlarePurge.Core.Auth;
 using FlarePurge.Core.Services;
 using H.NotifyIcon;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -128,11 +130,26 @@ internal sealed class TrayIconController : IDisposable
         });
     }
 
+    // C4: a favourite is purgeable only with the token of the account that owns it,
+    // but _cache uses whichever account is ACTIVE — so purging a favourite from
+    // another account 403/404s. Build a client bound to the favourite's own account.
+    // Legacy favourites (no recorded owner) and demo mode fall back to _cache.
+    private ICacheService CacheFor(FavoriteZone fav)
+    {
+        if (App.IsDemoMode || string.IsNullOrEmpty(fav.AccountId)) return _cache;
+
+        var keychain = App.Services.GetRequiredService<IKeychainProvider>();
+        var http = App.Services.GetRequiredService<HttpClient>();
+        var rateLimiter = App.Services.GetRequiredService<RateLimiter>();
+        var api = new ApiClient(http, rateLimiter, TokenProviderFactory.FromAccountId(_store, keychain, fav.AccountId));
+        return new CacheService(api);
+    }
+
     private async Task PurgeFavoriteAsync(FavoriteZone fav)
     {
         try
         {
-            var result = await _cache.PurgeEverythingAsync(fav.Id).ConfigureAwait(false);
+            var result = await CacheFor(fav).PurgeEverythingAsync(fav.Id).ConfigureAwait(false);
             ShowBalloon(L.Format("tray_balloonPurgedTitleFmt", fav.Name), L.Format("tray_balloonPurgeIdFmt", result.Id));
         }
         catch (CloudflareApiException ex)
@@ -154,7 +171,7 @@ internal sealed class TrayIconController : IDisposable
             {
                 try
                 {
-                    await _cache.PurgeEverythingAsync(fav.Id).ConfigureAwait(false);
+                    await CacheFor(fav).PurgeEverythingAsync(fav.Id).ConfigureAwait(false);
                     outcomes.Add((fav.Name, true));
                 }
                 catch (CloudflareApiException)

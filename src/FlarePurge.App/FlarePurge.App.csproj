@@ -15,6 +15,9 @@
     <WindowsPackageType>MSIX</WindowsPackageType>
     <DefaultLanguage>en</DefaultLanguage>
 
+    <!-- C7: use a custom entry point (Program.cs) for single-instancing. -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+
     <!-- MSIX packaging is framework-dependent: the app ships against the
          Windows App Runtime that Store installs alongside. Trimming/ReadyToRun
          require self-contained single-file publish, which is incompatible
@@ -27,11 +30,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.*" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.*" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.*" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.*" />
-    <PackageReference Include="H.NotifyIcon.WinUI" Version="2.*" />
+    <!-- Exact versions (audit S1/S2): floating wildcards let a compromised or
+         defective release slip into the next Store build. Bump deliberately +
+         re-run restore to update packages.lock.json. -->
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250602001" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.3233" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
+    <PackageReference Include="H.NotifyIcon.WinUI" Version="2.4.1" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 

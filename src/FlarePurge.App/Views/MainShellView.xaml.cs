@@ -34,8 +34,8 @@ public sealed partial class MainShellView : UserControl
         InitializeComponent();
 
         _zoneListVm.ZoneSelected += OnZoneSelected;
-        _zoneListVm.SettingsRequested += (_, _) => DispatcherQueue.TryEnqueue(async () => await OpenSettingsModalAsync());
-        _zoneListVm.AboutRequested += (_, _) => DispatcherQueue.TryEnqueue(async () => await OpenAboutModalAsync());
+        _zoneListVm.SettingsRequested += (_, _) => DispatcherQueue.TryEnqueue(() => Safe.Fire(XamlRoot, OpenSettingsModalAsync));
+        _zoneListVm.AboutRequested += (_, _) => DispatcherQueue.TryEnqueue(() => Safe.Fire(XamlRoot, OpenAboutModalAsync));
         _zoneListVm.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(ZoneListViewModel.LastUpdatedLabel)
@@ -72,10 +72,8 @@ public sealed partial class MainShellView : UserControl
         RefreshZonesButton.IsEnabled = !_zoneListVm.IsLoading;
     }
 
-    private async void OnRefreshZonesClick(object sender, RoutedEventArgs e)
-    {
-        await _zoneListVm.RefreshCommand.ExecuteAsync(null).ConfigureAwait(true);
-    }
+    private void OnRefreshZonesClick(object sender, RoutedEventArgs e)
+        => Safe.Fire(XamlRoot, () => _zoneListVm.RefreshCommand.ExecuteAsync(null));
 
     public void RefreshAfterStoreChange()
     {
@@ -177,18 +175,19 @@ public sealed partial class MainShellView : UserControl
         return null;
     }
 
-    private async void OnAccountItemClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button btn || btn.Tag is not string id) return;
-        if (string.Equals(id, _store.GetActiveAccountId(), StringComparison.Ordinal)) return;
-        var account = _store.LoadAccounts().FirstOrDefault(a => a.Id == id);
-        if (account is null) return;
+    private void OnAccountItemClick(object sender, RoutedEventArgs e)
+        => Safe.Fire(XamlRoot, async () =>
+        {
+            if (sender is not Button btn || btn.Tag is not string id) return;
+            if (string.Equals(id, _store.GetActiveAccountId(), StringComparison.Ordinal)) return;
+            var account = _store.LoadAccounts().FirstOrDefault(a => a.Id == id);
+            if (account is null) return;
 
-        await _zoneListVm.SwitchAccountAsync(account).ConfigureAwait(true);
-        _selectedZone = null;
-        RefreshAccounts();
-        UpdateRightPane();
-    }
+            await _zoneListVm.SwitchAccountAsync(account).ConfigureAwait(true);
+            _selectedZone = null;
+            RefreshAccounts();
+            UpdateRightPane();
+        });
 
     private void OnSignOutAccountClick(object sender, RoutedEventArgs e)
     {
@@ -225,13 +224,14 @@ public sealed partial class MainShellView : UserControl
         UpdateRightPane();
     }
 
-    private async void OnNavSettingsClick(object sender, RoutedEventArgs e) => await OpenSettingsModalAsync();
-    private async void OnNavAboutClick(object sender, RoutedEventArgs e) => await OpenAboutModalAsync();
-    private async void OnHistoryClick(object sender, RoutedEventArgs e)
-    {
-        if (XamlRoot is null) return;
-        await AppDialogs.ShowHistoryAsync(XamlRoot).ConfigureAwait(true);
-    }
+    private void OnNavSettingsClick(object sender, RoutedEventArgs e) => Safe.Fire(XamlRoot, OpenSettingsModalAsync);
+    private void OnNavAboutClick(object sender, RoutedEventArgs e) => Safe.Fire(XamlRoot, OpenAboutModalAsync);
+    private void OnHistoryClick(object sender, RoutedEventArgs e)
+        => Safe.Fire(XamlRoot, async () =>
+        {
+            if (XamlRoot is null) return;
+            await AppDialogs.ShowHistoryAsync(XamlRoot).ConfigureAwait(true);
+        });
 
     private async Task OpenSettingsModalAsync()
     {

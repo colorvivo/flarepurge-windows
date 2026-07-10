@@ -63,4 +63,41 @@ public class EndpointsTests
 
         uri.AbsolutePath.Should().Be("/client/v4/user/tokens/verify");
     }
+
+    // --- N2: zone id must be URL-path safe before interpolation ---
+
+    [Theory]
+    [InlineData("023e105f4ecef8ad9ca31a8372d0c353")] // real 32-hex id
+    [InlineData("abc-123")]                            // test placeholder
+    [InlineData("zone_a")]
+    public void PurgeCache_PathSafeId_BuildsPath(string zoneId)
+    {
+        Endpoints.PurgeCache(zoneId).Should().Be($"/zones/{zoneId}/purge_cache");
+    }
+
+    [Theory]
+    [InlineData("../admin")]
+    [InlineData("zone/../other")]
+    [InlineData("zone/purge")]
+    [InlineData("zone id")]
+    [InlineData("zone%2Fx")]
+    [InlineData("")]
+    public void PurgeCache_PathHostileId_Throws(string zoneId)
+    {
+        var act = () => Endpoints.PurgeCache(zoneId);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData("abc123", true)]
+    [InlineData("a-b_c", true)]
+    [InlineData("a/b", false)]
+    [InlineData("a.b", false)]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    public void IsPathSafeId_ClassifiesCharset(string? id, bool expected)
+    {
+        Endpoints.IsPathSafeId(id).Should().Be(expected);
+    }
 }

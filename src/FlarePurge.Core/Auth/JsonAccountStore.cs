@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using FlarePurge.Core.Json;
 
@@ -108,28 +109,54 @@ public sealed class JsonAccountStore : IAccountStore
         try
         {
             using var stream = File.OpenRead(_path);
-            return JsonSerializer.Deserialize(stream, CoreJsonContext.Default.AccountStoreData)
-                ?? new AccountStoreData([], null, null, null);
+            var data = JsonSerializer.Deserialize(stream, CoreJsonContext.Default.AccountStoreData);
+            if (data is null) return new AccountStoreData([], null, null, null);
+            // A syntactically valid file may still have "accounts": null (STJ does
+            // not enforce the record's non-nullability); a null list NREs downstream.
+            return data.Accounts is null ? data with { Accounts = [] } : data;
         }
-        catch (JsonException)
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
         {
-            // Corrupt file — treat as empty rather than crash the app on launch.
+            // Corrupt or unreadable (bad JSON, AV/backup lock, or another instance's
+            // sharing violation) — degrade to empty rather than crash at launch,
+            // where Load() runs in the MainWindow constructor.
             return new AccountStoreData([], null, null, null);
         }
     }
 
-    private void Write(AccountStoreData data)
+    /// <summary>
+    /// Emits the token-vault slots referenced by the stored accounts, but ONLY
+    /// when the accounts file was read with certainty. Returns <c>false</c> — and
+    /// callers must not act on <paramref name="slots"/> — when the file is absent
+    /// or could not be read/parsed. This is the safety gate for
+    /// <see cref="KeychainReconciler"/> (audit G2): a transient AV/backup lock
+    /// makes <see cref="Load"/> degrade to "no accounts", and reconciling on that
+    /// would wipe live tokens. Only a positively-parsed file is trustworthy.
+    /// </summary>
+    public bool TryLoadReferencedTokenSlots(out IReadOnlyList<string> slots)
     {
-        var directory = Path.GetDirectoryName(_path);
-        if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
-
-        var tempPath = _path + ".tmp";
-        using (var stream = File.Create(tempPath))
+        lock (_lock)
         {
-            JsonSerializer.Serialize(stream, data, CoreJsonContext.Default.AccountStoreData);
+            if (!File.Exists(_path)) { slots = []; return false; }
+            try
+            {
+                using var stream = File.OpenRead(_path);
+                var data = JsonSerializer.Deserialize(stream, CoreJsonContext.Default.AccountStoreData);
+                var accounts = data?.Accounts ?? [];
+                slots = accounts.Select(a => a.TokenKeychainAccount).ToArray();
+                return true;
+            }
+            catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+            {
+                slots = [];
+                return false;
+            }
         }
-        File.Move(tempPath, _path, overwrite: true);
     }
+
+    private void Write(AccountStoreData data)
+        => AtomicFile.Write(_path, stream =>
+            JsonSerializer.Serialize(stream, data, CoreJsonContext.Default.AccountStoreData));
 
     public static string DefaultPath()
     {

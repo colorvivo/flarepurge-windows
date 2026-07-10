@@ -16,6 +16,11 @@ namespace FlarePurge.Core.Api;
 
 public sealed class ApiClient : IApiClient
 {
+    // Upper bound on a single API response body. A full 200-zone listing with all
+    // metadata is well under 1 MB; 16 MB is generous headroom while still capping a
+    // runaway or hostile stream (audit N3).
+    internal const long MaxResponseBytes = 16 * 1024 * 1024;
+
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
         TypeInfoResolver = JsonTypeInfoResolver.Combine(
@@ -164,14 +169,17 @@ public sealed class ApiClient : IApiClient
     {
         try
         {
-            await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+            await using var raw = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+            await using var stream = new LimitedReadStream(raw, MaxResponseBytes);
             var parsed = await JsonSerializer.DeserializeAsync<ApiResponse<T>>(stream, JsonOptions, ct).ConfigureAwait(false);
             if (parsed is null)
                 throw new CloudflareApiException(new CloudflareApiError.Decoding("empty response body"));
             return parsed;
         }
-        catch (JsonException ex)
+        catch (Exception ex) when (ex is JsonException or IOException)
         {
+            // IOException here means the body blew past MaxResponseBytes (N3);
+            // treat an oversized body like any other undecodable payload.
             throw new CloudflareApiException(new CloudflareApiError.Decoding(ex.Message));
         }
     }
@@ -181,12 +189,13 @@ public sealed class ApiClient : IApiClient
         CfErrorEnvelope? envelope = null;
         try
         {
-            await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+            await using var raw = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+            await using var stream = new LimitedReadStream(raw, MaxResponseBytes);
             envelope = await JsonSerializer.DeserializeAsync<CfErrorEnvelope>(stream, JsonOptions, ct).ConfigureAwait(false);
         }
-        catch (JsonException)
+        catch (Exception ex) when (ex is JsonException or IOException)
         {
-            // Non-JSON error body — fall through with a null envelope.
+            // Non-JSON or oversized error body (N3) — fall through with a null envelope.
         }
 
         var status = (int)response.StatusCode;
@@ -220,8 +229,13 @@ public sealed class ApiClient : IApiClient
         return null;
     }
 
-    private static bool IsCertError(HttpRequestException ex)
-        => ex.InnerException is AuthenticationException
+    internal static bool IsCertError(HttpRequestException ex)
+        // Primary, locale-independent signals: the typed HttpRequestError (.NET 8+)
+        // and the AuthenticationException the TLS stack raises on a pin/validation
+        // failure. The message-sniffing below is a legacy fallback only — it breaks
+        // under localized OS error strings, so it must not be the sole check (N5).
+        => ex.HttpRequestError == HttpRequestError.SecureConnectionError
+        || ex.InnerException is AuthenticationException
         || ex.Message.Contains("SSL", StringComparison.OrdinalIgnoreCase)
         || ex.Message.Contains("TLS", StringComparison.OrdinalIgnoreCase)
         || ex.Message.Contains("certificate", StringComparison.OrdinalIgnoreCase);

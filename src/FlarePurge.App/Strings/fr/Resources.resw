@@ -1239,4 +1239,58 @@
   <data name="history_bulkFavsLabel" xml:space="preserve">
     <value>Favoris</value>
   </data>
+  <data name="error_unexpected_title" xml:space="preserve">
+    <value>Une erreur est survenue</value>
+  </data>
+  <data name="error_unexpected_body" xml:space="preserve">
+    <value>Une erreur inattendue s'est produite. L'action a été annulée et les détails ont été enregistrés. Veuillez réessayer.</value>
+  </data>
+  <data name="error_unauthorized_invalid" xml:space="preserve">
+    <value>Votre jeton d'API n'est pas valide. Ajoutez un jeton valide pour continuer.</value>
+  </data>
+  <data name="error_unauthorized_expired" xml:space="preserve">
+    <value>Votre jeton d'API a expiré. Ajoutez un nouveau jeton.</value>
+  </data>
+  <data name="error_unauthorized_revoked" xml:space="preserve">
+    <value>Votre jeton d'API a été révoqué. Ajoutez un nouveau jeton.</value>
+  </data>
+  <data name="error_forbidden_missingScope" xml:space="preserve">
+    <value>Il manque une autorisation requise à votre jeton : {0}.</value>
+  </data>
+  <data name="error_forbidden_generic" xml:space="preserve">
+    <value>Votre jeton n'a pas l'autorisation pour cette action.</value>
+  </data>
+  <data name="error_rateLimited_withRetry" xml:space="preserve">
+    <value>Limite de requêtes Cloudflare atteinte. Réessayez dans {0} s.</value>
+  </data>
+  <data name="error_rateLimited_generic" xml:space="preserve">
+    <value>Limite de requêtes Cloudflare atteinte. Réessayez bientôt.</value>
+  </data>
+  <data name="error_notFound" xml:space="preserve">
+    <value>Introuvable : {0}.</value>
+  </data>
+  <data name="error_networkUnavailable" xml:space="preserve">
+    <value>Aucune connexion réseau. Vérifiez votre connexion et réessayez.</value>
+  </data>
+  <data name="error_timeout" xml:space="preserve">
+    <value>La requête a expiré. Réessayez.</value>
+  </data>
+  <data name="error_certPinning" xml:space="preserve">
+    <value>Échec de la vérification de connexion sécurisée. Mettez à jour FlarePurge et réessayez.</value>
+  </data>
+  <data name="error_decoding" xml:space="preserve">
+    <value>Impossible de lire la réponse de Cloudflare ({0}).</value>
+  </data>
+  <data name="error_server_withMessage" xml:space="preserve">
+    <value>Erreur du serveur Cloudflare : {0}.</value>
+  </data>
+  <data name="error_server" xml:space="preserve">
+    <value>Cloudflare a rencontré une erreur serveur. Réessayez plus tard.</value>
+  </data>
+  <data name="error_cancelled" xml:space="preserve">
+    <value>L'opération a été annulée.</value>
+  </data>
+  <data name="error_unknown" xml:space="preserve">
+    <value>Une erreur est survenue ({0}).</value>
+  </data>
 </root>

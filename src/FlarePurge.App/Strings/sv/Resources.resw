@@ -1340,4 +1340,74 @@
     <value>Favourites</value>
     <!-- TODO: translate -->
   </data>
+  <data name="error_unexpected_title" xml:space="preserve">
+    <value>Något gick fel</value>
+  </data>
+  <data name="error_unexpected_body" xml:space="preserve">
+    <value>Ett oväntat fel inträffade. Åtgärden avbröts och detaljerna loggades. Försök igen.</value>
+  </data>
+  <data name="error_unauthorized_invalid" xml:space="preserve">
+    <value>Your API token is invalid. Add a valid token to continue.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_unauthorized_expired" xml:space="preserve">
+    <value>Your API token has expired. Add a new token.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_unauthorized_revoked" xml:space="preserve">
+    <value>Your API token was revoked. Add a new token.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_forbidden_missingScope" xml:space="preserve">
+    <value>Your token is missing a required permission: {0}.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_forbidden_generic" xml:space="preserve">
+    <value>Your token doesn't have permission for this action.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_rateLimited_withRetry" xml:space="preserve">
+    <value>Rate limited by Cloudflare. Try again in {0}s.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_rateLimited_generic" xml:space="preserve">
+    <value>Rate limited by Cloudflare. Try again shortly.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_notFound" xml:space="preserve">
+    <value>Not found: {0}.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_networkUnavailable" xml:space="preserve">
+    <value>No network connection. Check your internet and try again.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_timeout" xml:space="preserve">
+    <value>The request timed out. Try again.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_certPinning" xml:space="preserve">
+    <value>Secure connection check failed. Update FlarePurge and try again.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_decoding" xml:space="preserve">
+    <value>Couldn't read Cloudflare's response ({0}).</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_server_withMessage" xml:space="preserve">
+    <value>Cloudflare server error: {0}.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_server" xml:space="preserve">
+    <value>Cloudflare had a server error. Try again later.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_cancelled" xml:space="preserve">
+    <value>The operation was cancelled.</value>
+    <!-- TODO: translate -->
+  </data>
+  <data name="error_unknown" xml:space="preserve">
+    <value>Something went wrong ({0}).</value>
+    <!-- TODO: translate -->
+  </data>
 </root>

@@ -139,4 +139,32 @@ public class ZoneTests
 
         act.Should().Throw<NotSupportedException>();
     }
+
+    // --- H1 (audit): a 200 response carrying a malformed Zone must surface as a
+    // JsonException so ApiClient's `catch (JsonException)` maps it to
+    // CloudflareApiError.Decoding. The pre-fix converter threw
+    // KeyNotFoundException / InvalidOperationException, which escaped that catch
+    // and crashed the process. ---
+
+    [Theory]
+    [InlineData("""{ "name": "a.com", "status": "active" }""")]  // id missing
+    [InlineData("""{ "id": "z", "status": "active" }""")]        // name missing
+    [InlineData("""{ "id": "z", "name": "a.com" }""")]           // status missing
+    public void Decode_MissingRequiredField_ThrowsJsonException(string json)
+    {
+        var act = () => JsonSerializer.Deserialize<Zone>(json);
+
+        act.Should().Throw<JsonException>();
+    }
+
+    [Theory]
+    [InlineData("""{ "id": 123, "name": "a.com", "status": "active" }""")]   // id not a string
+    [InlineData("""{ "id": "z", "name": null, "status": "active" }""")]      // name is null
+    [InlineData("""{ "id": "z", "name": "a.com", "status": ["active"] }""")] // status is an array
+    public void Decode_RequiredFieldWrongType_ThrowsJsonException(string json)
+    {
+        var act = () => JsonSerializer.Deserialize<Zone>(json);
+
+        act.Should().Throw<JsonException>();
+    }
 }
